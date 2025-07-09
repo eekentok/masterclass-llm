@@ -24,6 +24,72 @@ Bir banka chatbotu veya self-servis yardım sistemi düşünün:
 > Kullanıcı: “Vadeli Mevduat Nedir?”  
 > Chatbot: Bankanın veya regülasyon kurumlarının sitelerinden çekilmiş metinleri kullanarak, kendi üslubuyla anlamlı ve doğru bir açıklama üretir.
 
+### 📌 ✅ Örnek Soru Seti
+
+> **Amaç:** Chatbot'un retrieval ve generation kalitesini test etmek için farklı perspektiflerden kullanıcı soruları.  
+> Her soruyu dene, sonucu gözlemle ve yanıt kalitesini analiz et.
+
+#### 🟢 Basit Sorular (Müşteri Dili)
+- Vadeli mevduat nedir?
+- Banka nedir ve ne iş yapar?
+- Vadeli hesap nasıl açılır?
+- Vadeli ve vadesiz hesap arasındaki fark nedir?
+- Paramı biriktirmek istiyorum, vadeli mi açayım?
+- Bana en karlı hesap hangisi olur?
+- Nasıl faiz kazanırım anlatır mısın?
+
+#### 🟡 İşlem / Senaryo Bazlı Sorular
+- Vadeli hesap açmak için hangi belgelere ihtiyacım var?
+- Şubeye gitmeden vadeli hesap açabilir miyim?
+- Telefon bankacılığıyla hesabı kapatabilir miyim?
+- Vadeli hesabı internetten nasıl yönetirim?
+- EFT yapabilir miyim vadeli hesaptan?
+- Vadeli hesabımı erken kapatırsam ne olur?
+
+#### 🟠 Kavram Açıklatıcı Sorular
+- Stopaj ne demek?
+- Mevduat sigortası nedir?
+- Faiz oranı nasıl belirlenir?
+- Brüt faiz / net faiz farkı ne?
+- Ana para koruması nedir?
+
+#### 🟣 Karşılaştırmalı Sorular
+- Vadeli mi vadesiz mi avantajlı?
+- Vadeli mevduat mı yatırım fonu mu daha iyi?
+- Katılma hesabı ile vadeli hesap farkı nedir?
+- Altın hesabı mı vadeli TL hesabı mı?
+- Vadeli mevduat mı döviz hesabı mı?
+
+#### 🔴 Risk ve Mevzuat Soruları
+- Vadeli hesabın riskleri var mı?
+- Devlet garantisi limiti nedir?
+- BDDK mevduat sigortası ne kadar?
+- Faiz oranları serbest mi?
+- Vadeli hesabı erken bozdurursam zarar eder miyim?
+
+#### 🧭 Stratejik / Analitik Sorular
+- Vadeli mevduat enflasyona karşı nasıl koruma sağlar?
+- Vadeli mevduatın likidite riski nedir?
+- Bankaların bilançolarında vadeli mevduat nasıl gösterilir?
+- Faizler yükselirse ne olur?
+- Uzun vadeli mi kısa vadeli mi daha karlı?
+- Bankalar neden vadeli hesap açtırmak ister?
+
+#### 🧩 Basitleştirilmiş / Çocuk Diliyle Açıklama İsteyen Sorular
+- Vadeli hesabı bana çocuk gibi anlatır mısın?
+- Faiz nedir basitçe açıkla.
+- Bankacılık ne iş yapar anlat.
+- En kolay dille vadeli hesap nedir?
+
+#### 🌐 İngilizce Soru Örnekleri
+- What is a time deposit?
+- Difference between demand and time deposit?
+- How do banks calculate interest for time deposits?
+- Advantages of a time deposit account.
+- What happens if I break a time deposit early?
+- Is a time deposit safe?
+- How does the banking system work?
+
 ---
 
 ## 💡 Neden Bunu Yapıyoruz?
