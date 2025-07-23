@@ -15,6 +15,7 @@ import csv
 import requests
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
+import trafilatura
 
 def scrape_page(url):
     """
@@ -27,6 +28,10 @@ def scrape_page(url):
     ua = UserAgent()
     headers = {'User-Agent': ua.random}
     response = requests.get(url, headers=headers)
+    if response.status_code == 200:
+        downloaded = trafilatura.extract(response.text)
+        print(downloaded)
+    
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
     # Başlık kontrolü: hem soup.title hem de soup.title.string var mı?
