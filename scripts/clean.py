@@ -11,43 +11,31 @@ Amaç:
 """
 
 import pandas as pd
-
-headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-}
-
-def fetch_clean_text(url):
-    try:
-        response = requests.get(url, headers=headers, timeout=10)
-        if response.status_code == 200:
-            downloaded = trafilatura.extract(response.text)
-            return downloaded
-        else:
-            print(f"[!] {url} status code: {response.status_code}")
-            return None
-    except Exception as e:
-        print(f"[X] Error fetching {url}: {e}")
-        return None
-
+import re
 
 def clean_text(text):
-    if not text:
+    if not text or not isinstance(text, str):
         return ""
-    # Clean HTML tags
+        
+    # Clean HTML tags.
     text = re.sub(r'<[^>]+>', ' ', text)
-    # Clean punctuations
-    text = re.sub(r'[^\w\s]', ' ', text)
-    # Lowercase
+    # Lowercase.
     text = text.lower()
-    # Clean unnecessary spaces
-    text = re.sub(r'\s+', ' ', text).strip()
+    # Delete punctuation.
+    text = re.sub(r"[^\w\s]", " ", text)
+    # Delete unnecessary spaces.
+    text = re.sub(r"\s+", " ", text).strip()
     return text
 
+
 def main():
-    df = pd.read_csv('../input/scraped_data.csv')
-    df['cleaned_content'] = df['content'].apply(fetch_clean_text).apply(clean_text)
-    df.to_csv('../output/cleaned_data.csv', index=False)
-    print("✅ Temizleme tamamlandı.")
+    df = pd.read_csv("../input/scraped_data.csv")
+
+    # Clean content column.
+    df["clean_content"] = df["content"].apply(clean_text)
+
+    df.to_csv("../output/cleaned_data.csv", index=False)
+    print("✅ Temizlik tamamlandı. → output/cleaned_data.csv")
 
 if __name__ == "__main__":
     main()
