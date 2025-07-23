@@ -132,17 +132,18 @@ def str_basicclean(df,column ='',style = 'cap',sp_char = string.whitespace, sp_r
     return df[column]
 
 def main():
-    df = pd.read_csv('scraped_data.csv')
+    df = pd.read_csv('traf_data.csv')
     #df['cleaned_content'] = df['content'].apply(clean_text)
     str_basicclean(df, 'content', 'low')
-    df.to_csv('cleaned_data.csv', index=False)
+    df.to_csv('cleaned_traf_data.csv', index=False)
     
     #print(df[df['content'].isna()])
-    
+
+    '''
     print("Navigasyon metinleri temizliği başlıyor...")
     df['content'] = df['content'].fillna('')
     df['content']=df['content'].apply(clean_navigation_text)
-    
+    '''
     print("✅ Temizleme tamamlandı.")
 
 if __name__ == "__main__":

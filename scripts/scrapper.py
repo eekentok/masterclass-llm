@@ -17,6 +17,34 @@ from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 import trafilatura
 
+#Trafilatura version
+
+def fetch_clean_text(url):
+
+    ua = UserAgent()
+    headers = {'User-Agent': ua.random}
+    response = requests.get(url, headers=headers)
+
+    soup = BeautifulSoup(response.text, 'html.parser')
+    # Başlık kontrolü: hem soup.title hem de soup.title.string var mı?
+    if soup.title and soup.title.string:
+        title = soup.title.string.strip()
+    else:
+        title = ''
+
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        if response.status_code == 200:
+            content = trafilatura.extract(response.text)
+            return {"url": url, "title": title, "content": content}
+        else:
+            print(f"[!] {url} status code: {response.status_code}")
+            return None
+    except Exception as e:
+        print(f"[X] Error fetching {url}: {e}")
+        return None
+
+
 def scrape_page(url):
     """
     TODO:
@@ -28,10 +56,8 @@ def scrape_page(url):
     ua = UserAgent()
     headers = {'User-Agent': ua.random}
     response = requests.get(url, headers=headers)
-    if response.status_code == 200:
-        downloaded = trafilatura.extract(response.text)
-        print(downloaded)
-    
+
+
     response.raise_for_status()
     soup = BeautifulSoup(response.text, 'html.parser')
     # Başlık kontrolü: hem soup.title hem de soup.title.string var mı?
@@ -52,15 +78,22 @@ def main():
                 urls.append(row[0])
 
     results = []
+    traf_text = []
     for url in urls:
         if url[0:4] == 'http':
             print(f'Scraping {url}...')
-            result = scrape_page(url)
-            if result:
-                results.append(result)
+            #result = scrape_page(url)
+            traf_res = fetch_clean_text(url)
+            if traf_res:
+                traf_text.append(traf_res)
+            #if result:
+            #    results.append(result)
 
-    df = pd.DataFrame(results)
-    df.to_csv('scraped_data.csv', index=False)
+    traf_df = pd.DataFrame(traf_text)
+    traf_df.to_csv('traf_data.csv', index = False)
+
+    #df = pd.DataFrame(results)
+    #df.to_csv('scraped_data.csv', index=False)
     print("✅ Scraping tamamlandı.")
 
 if __name__ == "__main__":

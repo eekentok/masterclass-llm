@@ -14,7 +14,7 @@ import pandas as pd
 import json
 from groq import Groq
 
-GROQ_API_KEY = "YOUR_API_KEY_HERE"
+GROQ_API_KEY = "API_KEY"
 client = Groq(api_key=GROQ_API_KEY)
 
 def embed_text(text):
