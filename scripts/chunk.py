@@ -58,16 +58,24 @@ def query_groq_llama3_70b(api_key, prompt, system_prompt="You are a helpful assi
 
 
 def main():
-    df = pd.read_csv('cleaned_traf_data.csv')
+    df = pd.read_csv('./data/cleaned_traf_data.csv')
     records = []
 
     for idx, row in df.iterrows():
         content = row['content']
+
+        # A small print to see the title of the row that is being chunked
+        title = row.get('title', f'Row {idx}')  # Eğer 'title' yoksa satır numarası kullan
+        print(f"▶️ Chunking: {title}")
+        
         chunks = chunk_text_token_llama3(content, chunk_size=8192, model_name="unsloth/llama-3-8b-bnb-4bit")  # or another open tokenizer
         for chunk_id, chunk in enumerate(chunks):
-            new_row = row.copy()
-            new_row['content'] = chunk
-            new_row['chunk_id'] = chunk_id
+            new_row = {
+                'url': row['url'],
+                'title': row['title'],
+                'chunk': chunk,
+                'chunk_id': chunk_id
+            }
             records.append(new_row)
 
     out_df = pd.DataFrame(records)

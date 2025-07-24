@@ -8,3 +8,5 @@ random
 string
 re
 python-dotenv
+openai
+sentence-transformers
