@@ -5,7 +5,7 @@ import os
 
 def main():
     # ChromaDB client'ı başlat (local, varsayılan ayarlarla)
-    client = chromadb.PersistentClient(path="./chroma_db")
+    client = chromadb.PersistentClient(path="./data/chroma_db")
 
     # Koleksiyon oluştur veya var olanı al
     collection = client.get_or_create_collection("embedding_chunks")
@@ -37,6 +37,6 @@ def main():
     )
 
     print(f"✅ {len(embeddings)} embedding ChromaDB'ye yüklendi.")
-    print("Klasörler:", os.listdir("."))
+
 if __name__ == "__main__":
     main()

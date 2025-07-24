@@ -33,28 +33,14 @@ def chunk_text(text, size=100):
     """
     return [text]  # Şu an parçalamıyor
 
-def chunk_text_token_llama3(text, chunk_size=8192, model_name="unsloth/llama-3-8b-bnb-4bit"):
+def chunk_text_token_llama3(text, chunk_size=500, model_name="unsloth/llama-3-8b-bnb-4bit"):
     """
     Token-based chunking using HuggingFace's Llama 3 tokenizer.
-    NOTE: If Groq's official tokenizer is not available on HuggingFace, we use Meta's Llama 3 tokenizer as a close equivalent for tokenization/chunking.
     """
-    # If Groq releases an official tokenizer, replace the model_name below with the correct one, e.g.:
-    # model_name="TheBloke/Groq-Llama-3-70B-base-GGUF"
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokens = tokenizer.encode(str(text))
     chunks = [tokens[i:i+chunk_size] for i in range(0, len(tokens), chunk_size)]
     return [tokenizer.decode(chunk) for chunk in chunks]
-
-
-def query_groq_llama3_70b(api_key, prompt, system_prompt="You are a helpful assistant for a bank."):
-    # TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(base_url="https://api.groq.com/openai/v1")'
-    # openai.api_base = "https://api.groq.com/openai/v1"
-    response = client.chat.completions.create(model="llama3-70b-8192",
-    messages=[
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt}
-    ])
-    return response.choices[0].message.content
 
 
 def main():
@@ -68,7 +54,7 @@ def main():
         title = row.get('title', f'Row {idx}')  # Eğer 'title' yoksa satır numarası kullan
         print(f"▶️ Chunking: {title}")
         
-        chunks = chunk_text_token_llama3(content, chunk_size=8192, model_name="unsloth/llama-3-8b-bnb-4bit")  # or another open tokenizer
+        chunks = chunk_text_token_llama3(content, chunk_size=500,)  # or another open tokenizer
         for chunk_id, chunk in enumerate(chunks):
             new_row = {
                 'url': row['url'],
