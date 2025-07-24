@@ -13,12 +13,16 @@ import pandas as pd
 from transformers import AutoTokenizer
 import openai
 from openai import OpenAI
-import os
 from dotenv import load_dotenv
+import os
 
+#Get .env file
 load_dotenv()
 
+#Get API key from .env file
 api_key = os.getenv("API_KEY")
+
+#Create OpenAI client
 client = OpenAI(api_key=api_key)
 
 def chunk_text(text, size=100):
@@ -67,7 +71,7 @@ def main():
             records.append(new_row)
 
     out_df = pd.DataFrame(records)
-    out_df.to_csv('../chunked_traf_data.csv', index=False)
+    out_df.to_csv('chunked_traf_data.csv', index=False)
     print("✅ Chunking completed. Output: chunked_traf_data.csv")
 if __name__ == "__main__":
     main()
