@@ -12,6 +12,14 @@ Amaç:
 import pandas as pd
 from transformers import AutoTokenizer
 import openai
+from openai import OpenAI
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+api_key = os.getenv("API_KEY")
+client = OpenAI(api_key=api_key)
 
 def chunk_text(text, size=100):
     """
@@ -35,40 +43,31 @@ def chunk_text_token_llama3(text, chunk_size=8192, model_name="unsloth/llama-3-8
 
 
 def query_groq_llama3_70b(api_key, prompt, system_prompt="You are a helpful assistant for a bank."):
-    openai.api_key = api_key
-    openai.api_base = "https://api.groq.com/openai/v1"
-    response = openai.ChatCompletion.create(
-        model="llama3-70b-8192",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ]
-    )
-    return response['choices'][0]['message']['content']
+    # TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(base_url="https://api.groq.com/openai/v1")'
+    # openai.api_base = "https://api.groq.com/openai/v1"
+    response = client.chat.completions.create(model="llama3-70b-8192",
+    messages=[
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": prompt}
+    ])
+    return response.choices[0].message.content
 
 
 def main():
-    api_key = "API_KEY"
     df = pd.read_csv('cleaned_traf_data.csv')
     records = []
 
     for idx, row in df.iterrows():
         content = row['content']
-        chunks = chunk_text_token_llama3(content, chunk_size=8192)
+        chunks = chunk_text_token_llama3(content, chunk_size=8192, model_name="unsloth/llama-3-8b-bnb-4bit")  # or another open tokenizer
         for chunk_id, chunk in enumerate(chunks):
             new_row = row.copy()
             new_row['content'] = chunk
             new_row['chunk_id'] = chunk_id
-            # Query Groq Llama 3 70B for each chunk
-            try:
-                response = query_groq_llama3_70b(api_key, chunk)
-            except Exception as e:
-                response = f"Error: {e}"
-            new_row['llama3_response'] = response
             records.append(new_row)
 
     out_df = pd.DataFrame(records)
-    out_df.to_csv('chunked_traf_data.csv', index=False)
-    print("✅ Chunk işlemi tamamlandı.")
+    out_df.to_csv('../chunked_traf_data.csv', index=False)
+    print("✅ Chunking completed. Output: chunked_traf_data.csv")
 if __name__ == "__main__":
     main()

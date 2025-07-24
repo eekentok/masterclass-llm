@@ -13,8 +13,16 @@ Amaç:
 import pandas as pd
 import json
 from groq import Groq
+from dotenv import load_dotenv
+import os
 
-GROQ_API_KEY = "API_KEY"
+#Get .env file
+load_dotenv()
+
+#Get API key from .env file
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+#Create Groq client
 client = Groq(api_key=GROQ_API_KEY)
 
 def embed_text(text):
