@@ -132,10 +132,10 @@ def str_basicclean(df,column ='',style = 'cap',sp_char = string.whitespace, sp_r
     return df[column]
 
 def main():
-    df = pd.read_csv('traf_data.csv')
+    df = pd.read_csv('./data/traf_data.csv')
     #df['cleaned_content'] = df['content'].apply(clean_text)
     str_basicclean(df, 'content', 'low')
-    df.to_csv('cleaned_traf_data.csv', index=False)
+    df.to_csv('./data/cleaned_traf_data.csv', index=False)
     
     #print(df[df['content'].isna()])
 

@@ -71,7 +71,7 @@ def scrape_page(url):
 
 def main():
     urls = []
-    with open('combined_links.csv', newline='') as csvfile:
+    with open('./data/input/combined_links.csv', newline='') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
             if row:  # Boş satırları atla
@@ -90,7 +90,7 @@ def main():
             #    results.append(result)
 
     traf_df = pd.DataFrame(traf_text)
-    traf_df.to_csv('traf_data.csv', index = False)
+    traf_df.to_csv('./data/traf_data.csv', index = False)
 
     #df = pd.DataFrame(results)
     #df.to_csv('scraped_data.csv', index=False)
