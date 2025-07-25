@@ -27,7 +27,7 @@ chroma_client = chromadb.PersistentClient(path="./data/chroma_db")
 collection = chroma_client.get_or_create_collection("embedding_chunks")
 embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
-MAX_HISTORY = 5  # Sohbet geçmişinde tutulacak maksimum soru-cevap çifti
+MAX_HISTORY = 10  # Sohbet geçmişinde tutulacak maksimum soru-cevap çifti
 
 def generate_answer(context, question):
     """
@@ -37,20 +37,22 @@ def generate_answer(context, question):
     """
 
     system_prompt = (
-        "Aşağıda sana verilen bilgi parçacıklarına dayanarak, kullanıcının sorusunu yanıtla. "
-        "Eğer bilgi parçacıklarında cevap yoksa, 'Bu konuda elimde bilgi yok.' de.\n\n"
-        "Tarzın: Nazik, anlaşılır ve profesyonel.\n"
-        "Sınırların: Yorum yapma, yatırım tavsiyesi verme, finansal danışmanlık yapma.\n"
-        "Gizlilik: Kimseden kişisel bilgileri sorma, kimseden kişisel bilgileri alma.\n"
-        "Dil: Sorunun sorulduğu dili kullan.\n"
-        "Bilgi parçacıkları:\n"
+        "Use only the provided context information to generate your answer."
+        "Rules:\n"
+        "- If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.'\n"
+        "- Do not generate opinions, investment advice, or financial consulting.\n"
+        "- Never ask for or store personal information.\n"
+        "- Always respond in Turkish.\n"
+        "- If the user asks a question in another language, answer in that language using English-generated content translated to the user's language.\n"
+        "Provided context:\n"
         f"{context}\n\n"
-        f"Soru: {question}\nCevap:"
+        "User question: "
+        f"{question}\nAnswer:"
     )
     response = client.chat.completions.create(
         model="llama3-70b-8192",
         messages=[
-            {"role": "system", "content": "Sen Türkiye İş Bankası için tasarlanmış bir bankacılık asistanısın. Görevin sorulan bankacılık hizmetleri, ürünleri ve süreçleri hakkında sorulara elindeki bilgileri kullanarak cevap vermek."},
+            {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures."},
             {"role": "user", "content": system_prompt}
         ]
     )
@@ -71,7 +73,7 @@ def main():
         # ChromaDB'den en yakın 5 chunk'ı çek
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=5,
+            n_results=10,
             include=['documents']
         )
         context = "\n---\n".join(results['documents'][0])
