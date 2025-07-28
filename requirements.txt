@@ -2,11 +2,9 @@ pandas
 transformers
 openai
 numpy
-difflib
-os
-random
-string
-re
 python-dotenv
-openai
 sentence-transformers
+flask
+flask-cors
+chromadb
+groq

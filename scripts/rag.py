@@ -60,8 +60,7 @@ def generate_answer(context, question):
 
 def main():
     chat_history = [
-        {"role": "system", 
-        "content": "Sen Türkiye İş Bankası için tasarlanmış bir bankacılık asistanısın. Görevin sorulan bankacılık hizmetleri, ürünleri ve süreçleri hakkında sorulara elindeki bilgileri kullanarak cevap vermek."}
+        {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures."}
     ]
     while True:
         question = input("Soru girin: ")
@@ -70,7 +69,7 @@ def main():
             break
         # Sorgu embedding'i üret
         query_embedding = embedding_model.encode(question).tolist()
-        # ChromaDB'den en yakın 5 chunk'ı çek
+        # ChromaDB'den en yakın x chunk'ı çek
         results = collection.query(
             query_embeddings=[query_embedding],
             n_results=10,
