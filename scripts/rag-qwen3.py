@@ -50,7 +50,7 @@ def generate_answer(context, question):
         f"{question}\nAnswer:"
     )
     response = client.chat.completions.create(
-        model=os.getenv("LLM_MODEL"),
+        model="Qwen/Qwen3-32B",
         messages=[
             {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures."},
             {"role": "user", "content": system_prompt}
@@ -73,7 +73,7 @@ def main():
         # ChromaDB'den en yakın 5 chunk'ı çek
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=10,
+            n_results=5,
             include=['documents']
         )
         context = "\n---\n".join(results['documents'][0])
@@ -84,7 +84,7 @@ def main():
             {"role": "user", "content": f"{context}\n\nSoru: {question}\nCevap:"}
         ]
         response = client.chat.completions.create(
-            model=os.getenv("LLM_MODEL"),
+            model="Qwen/Qwen3-32B",
             messages=messages
         )
         answer = response.choices[0].message.content.strip()

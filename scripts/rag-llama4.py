@@ -50,7 +50,7 @@ def generate_answer(context, question):
         f"{question}\nAnswer:"
     )
     response = client.chat.completions.create(
-        model=os.getenv("LLM_MODEL"),
+        model="meta-llama/llama-4-scout-17b-16e-instruct",
         messages=[
             {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures."},
             {"role": "user", "content": system_prompt}
@@ -84,7 +84,7 @@ def main():
             {"role": "user", "content": f"{context}\n\nSoru: {question}\nCevap:"}
         ]
         response = client.chat.completions.create(
-            model=os.getenv("LLM_MODEL"),
+            model="meta-llama/llama-4-scout-17b-16e-instruct",
             messages=messages
         )
         answer = response.choices[0].message.content.strip()
