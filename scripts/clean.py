@@ -25,42 +25,11 @@ def clean_navigation_text(text):
     # re.IGNORECASE büyük/küçük harf duyarsızlığı sağlar.
     
     patterns = [
-        r'\bana sayfa\b',
-        r'\banasayfa\b'
-        r'\boturum aç\b',
-        r'\bkayıt ol\b',
-        r'\bbize ulaşın\b',
-        r'\bgizlilik politikası\b',
-        r'\bhakkımızda\b',
-        r'\bşartlar ve koşullar\b',
-        r'\bsepetim\b',
-        r'\bara\b',
-        r'\btelif hakkı\b.*?\d{4}',
-        r'\bgeri dön\b',
-        r'\btüm hakları saklıdır\b',
-        r'\bgiriş yap\b',
-        r'\byardım merkezi\b',
-        r'\bsitemap\b',
-        r'\biletişim\b',
-        r'\byakınımdakiler\b',
-        r'\bayarlar\b'
-        r'\bbağış yapın eğer vikipedi sizin için yararlıysa lütfen bugün bağış yapın.\b'
-        r'\bvikipedi hakkında sorumluluk reddi ara\b'
-        r'\bdil i̇zle değiştir\b'
-        r'\(.*? sayfasından yönlendirildi\)'
-        r'(?:diller|\d+\s*dil)\s*(.*?)(?:\s*sayfa en son\.{3}|\s*\n\n|\s*\Z|$)'
-        r'sayfa en son\s*(.*?)\s*tarihinde değiştirildi\.\s*(?:aksi belirtilmedikçe içeriğin kullanımı)?\s*(.*?)\s*lisansı kapsamında uygundur\.\s*(.*)'
-        r'"\s*https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&//=]*?)?"\s*sayfasından alınmıştır\s*son düzenleme\s*(.*?)\s*tarihinde yapıldı'
-        r'\bmobil görünüm\b'
-        r'\bi̇çeriğe atla\b'
-        r'\bana menü\b'
-        r'\bkenar çubuğuna taşı\b'
-        r'\b\b'
-        r'\b\b'
-        r'\b\b'
-        r'\b\b'
         #Sayısal navigasyonlar (örn: [1] [2] [3]), eğer varsa:
-        r'\[\d+\]'
+        r'\[\d+\]',
+        #Köşeli parantezler içindeki metinleri temizle
+        r'\[.*?\]',
+        
     ]
 
     for pattern in patterns:
@@ -135,15 +104,15 @@ def main():
     df = pd.read_csv('./data/traf_data.csv')
     #df['cleaned_content'] = df['content'].apply(clean_text)
     str_basicclean(df, 'content', 'low')
-    df.to_csv('./data/cleaned_traf_data.csv', index=False)
     
     #print(df[df['content'].isna()])
 
-    '''
     print("Navigasyon metinleri temizliği başlıyor...")
     df['content'] = df['content'].fillna('')
     df['content']=df['content'].apply(clean_navigation_text)
-    '''
+
+    df.to_csv('./data/cleaned_traf_data.csv', index=False)
+
     print("✅ Temizleme tamamlandı.")
 
 if __name__ == "__main__":

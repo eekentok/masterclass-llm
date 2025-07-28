@@ -74,7 +74,7 @@ def main():
     with open('./data/input/combined_links.csv', newline='') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            if row:  # Boş satırları atla
+            if row and ".pdf" not in row[0].lower():  # Boş satırları ve .pdf içerenleri atla
                 urls.append(row[0])
 
     results = []
