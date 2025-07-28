@@ -172,7 +172,11 @@ class ChatInterface {
 
         const messageText = document.createElement('div');
         messageText.className = 'message-text';
-        messageText.textContent = text;
+        if (sender === 'bot') {
+            messageText.innerHTML = text;
+        } else {
+            messageText.textContent = text;
+        }
 
         const messageTime = document.createElement('div');
         messageTime.className = 'message-time';
@@ -193,13 +197,15 @@ class ChatInterface {
 
     showLoading() {
         this.isLoading = true;
-        this.loadingOverlay.classList.add('show');
+        const loadingText = document.getElementById('loadingText');
+        if (loadingText) loadingText.style.display = 'block';
         this.messageInput.disabled = true;
     }
 
     hideLoading() {
         this.isLoading = false;
-        this.loadingOverlay.classList.remove('show');
+        const loadingText = document.getElementById('loadingText');
+        if (loadingText) loadingText.style.display = 'none';
         this.messageInput.disabled = false;
         this.messageInput.focus();
     }

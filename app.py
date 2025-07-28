@@ -37,23 +37,9 @@ def generate_answer(context, question, chat_history=None):
     if chat_history is None:
         chat_history = []
     
-    system_prompt = (
-        "Use only the provided context information to generate your answer. "
-        "Rules:\n"
-        "- If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.'\n"
-        "- Do not generate opinions, investment advice, or financial consulting.\n"
-        "- Never ask for or store personal information.\n"
-        "- Always respond in Turkish.\n"
-        "- If the user asks a question in another language, answer in that language using English-generated content translated to the user's language.\n"
-        "Provided context:\n"
-        f"{context}\n\n"
-        "User question: "
-        f"{question}\nAnswer:"
-    )
-    
     # Prepare messages for the API call
     messages = [
-        {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures."}
+        {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures. Always respond in Turkish. If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.' Do not generate opinions, investment advice, or financial consulting. Never ask for or store personal information. When providing lists, use proper HTML formatting: <ul><li>Item 1</li><li>Item 2</li></ul> for bullet lists or <ol><li>Item 1</li><li>Item 2</li></ol> for numbered lists."}
     ]
     
     # Add chat history if provided
@@ -62,8 +48,9 @@ def generate_answer(context, question, chat_history=None):
         trimmed_history = chat_history[-MAX_HISTORY*2:]
         messages.extend(trimmed_history)
     
-    # Add current question with context
-    messages.append({"role": "user", "content": system_prompt})
+    # Add current question with context (matching rag.py approach)
+    user_message = f"{context}\n\nSoru: {question}\nCevap:"
+    messages.append({"role": "user", "content": user_message})
     
     try:
         response = client.chat.completions.create(

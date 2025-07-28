@@ -8,7 +8,7 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
+    <div class="container two-column-layout">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
@@ -22,86 +22,75 @@
                 </div>
             </div>
         </header>
-
-        <!-- Chat Container -->
-        <div class="chat-container">
-            <div class="chat-messages" id="chatMessages">
-                <!-- Welcome message -->
-                <div class="message bot-message">
-                    <div class="message-avatar">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <div class="message-content">
-                        <div class="message-text">
-                            Merhaba! Ben İş Bankası AI Asistanınız. Bankacılık ürünleri, hizmetler ve işlemler hakkında sorularınızı yanıtlamaya hazırım. Size nasıl yardımcı olabilirim?
+        <div class="main-content">
+            <div class="chat-container">
+                <div class="chat-messages" id="chatMessages">
+                    <!-- Welcome message -->
+                    <div class="message bot-message">
+                        <div class="message-avatar">
+                            <i class="fas fa-robot"></i>
                         </div>
-                        <div class="message-time" id="welcomeTime"></div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                Merhaba! Ben İş Bankası AI Asistanınız. Bankacılık ürünleri, hizmetler ve işlemler hakkında sorularınızı yanıtlamaya hazırım. Size nasıl yardımcı olabilirim?
+                            </div>
+                            <div class="message-time" id="welcomeTime"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="loading-text" id="loadingText" style="display:none;">Yanıt hazırlanıyor...</div>
+                <!-- Input Area -->
+                <div class="chat-input-container">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="messageInput" 
+                            placeholder="Mesajınızı yazın..." 
+                            rows="1"
+                            maxlength="1000"
+                        ></textarea>
+                        <button id="sendButton" class="send-button" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <div class="input-footer">
+                        <span class="char-count" id="charCount">0/1000</span>
+                        <button id="clearChat" class="clear-button">
+                            <i class="fas fa-trash"></i> Sohbeti Temizle
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <!-- Input Area -->
-            <div class="chat-input-container">
-                <div class="input-wrapper">
-                    <textarea 
-                        id="messageInput" 
-                        placeholder="Mesajınızı yazın..." 
-                        rows="1"
-                        maxlength="1000"
-                    ></textarea>
-                    <button id="sendButton" class="send-button" disabled>
-                        <i class="fas fa-paper-plane"></i>
+            <div class="quick-actions">
+                <h3>Hızlı Sorular</h3>
+                <div class="quick-buttons">
+                    <button class="quick-btn" data-question="Vadeli mevduat nedir?">
+                        <i class="fas fa-piggy-bank"></i>
+                        Vadeli Mevduat
                     </button>
-                </div>
-                <div class="input-footer">
-                    <span class="char-count" id="charCount">0/1000</span>
-                    <button id="clearChat" class="clear-button">
-                        <i class="fas fa-trash"></i> Sohbeti Temizle
+                    <button class="quick-btn" data-question="Vadeli hesap nasıl açılır?">
+                        <i class="fas fa-plus-circle"></i>
+                        Hesap Açma
+                    </button>
+                    <button class="quick-btn" data-question="Vadeli ve vadesiz hesap arasındaki fark nedir?">
+                        <i class="fas fa-balance-scale"></i>
+                        Hesap Türleri
+                    </button>
+                    <button class="quick-btn" data-question="Faiz oranları nasıl belirlenir?">
+                        <i class="fas fa-percentage"></i>
+                        Faiz Oranları
+                    </button>
+                    <button class="quick-btn" data-question="Mevduat sigortası nedir?">
+                        <i class="fas fa-shield-alt"></i>
+                        Mevduat Sigortası
+                    </button>
+                    <button class="quick-btn" data-question="Stopaj ne demek?">
+                        <i class="fas fa-calculator"></i>
+                        Stopaj
                     </button>
                 </div>
             </div>
         </div>
-
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <h3>Hızlı Sorular</h3>
-            <div class="quick-buttons">
-                <button class="quick-btn" data-question="Vadeli mevduat nedir?">
-                    <i class="fas fa-piggy-bank"></i>
-                    Vadeli Mevduat
-                </button>
-                <button class="quick-btn" data-question="Vadeli hesap nasıl açılır?">
-                    <i class="fas fa-plus-circle"></i>
-                    Hesap Açma
-                </button>
-                <button class="quick-btn" data-question="Vadeli ve vadesiz hesap arasındaki fark nedir?">
-                    <i class="fas fa-balance-scale"></i>
-                    Hesap Türleri
-                </button>
-                <button class="quick-btn" data-question="Faiz oranları nasıl belirlenir?">
-                    <i class="fas fa-percentage"></i>
-                    Faiz Oranları
-                </button>
-                <button class="quick-btn" data-question="Mevduat sigortası nedir?">
-                    <i class="fas fa-shield-alt"></i>
-                    Mevduat Sigortası
-                </button>
-                <button class="quick-btn" data-question="Stopaj ne demek?">
-                    <i class="fas fa-calculator"></i>
-                    Stopaj
-                </button>
-            </div>
-        </div>
     </div>
-
-    <!-- Loading Overlay -->
-    <div class="loading-overlay" id="loadingOverlay">
-        <div class="loading-content">
-            <div class="spinner"></div>
-            <p>Yanıt hazırlanıyor...</p>
-        </div>
-    </div>
-
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 </body>
 </html> 
