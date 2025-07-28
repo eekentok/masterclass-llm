@@ -54,7 +54,7 @@ def generate_answer(context, question, chat_history=None):
     
     try:
         response = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model=os.getenv("LLM_MODEL"),
             messages=messages
         )
         return response.choices[0].message.content.strip()
