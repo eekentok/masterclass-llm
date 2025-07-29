@@ -29,12 +29,15 @@ embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 MAX_HISTORY = 10  # Sohbet geçmişinde tutulacak maksimum soru-cevap çifti
 
-def generate_answer(context, question):
+def generate_answer(context, question, chat_history=None):
     """
     TODO:
     - ChatCompletion çağrısı yap
     - prompt tasarla
     """
+    
+    if chat_history is None:
+        chat_history = []
 
     system_prompt = (
         "Use only the provided context information to generate your answer."
@@ -49,12 +52,16 @@ def generate_answer(context, question):
         "User question: "
         f"{question}\nAnswer:"
     )
+    
+    # Chat history'yi kullan
+    messages = chat_history + [
+        {"role": "user",
+        "content": system_prompt}
+    ]
+    
     response = client.chat.completions.create(
         model=os.getenv("LLM_MODEL"),
-        messages=[
-            {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures."},
-            {"role": "user", "content": system_prompt}
-        ]
+        messages=messages
     )
     return response.choices[0].message.content.strip()
 
@@ -79,15 +86,8 @@ def main():
         context = "\n---\n".join(results['documents'][0])
         # Sohbet geçmişinin son MAX_HISTORY*2 mesajını (soru-cevap) al
         trimmed_history = chat_history[-MAX_HISTORY*2:]
-        # Yeni soruyu context ile birlikte ekle
-        messages = trimmed_history + [
-            {"role": "user", "content": f"{context}\n\nSoru: {question}\nCevap:"}
-        ]
-        response = client.chat.completions.create(
-            model=os.getenv("LLM_MODEL"),
-            messages=messages
-        )
-        answer = response.choices[0].message.content.strip()
+        # generate_answer fonksiyonunu kullan
+        answer = generate_answer(context, question, trimmed_history)
         print("\nYanıt:")
         print(answer + "\n--------------------------------")
         # Sohbet geçmişine ekle
