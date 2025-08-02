@@ -47,13 +47,37 @@ Cevap:
         return f"[!] Yanıt üretme hatası: {e}"
 
 def main():
-    question = "Vadeli mevduat nedir?"
-    context = """
-Vadeli Mevduat, belirli bir vade süresi boyunca bankaya yatırılan para karşılığında faiz geliri elde edilmesini sağlayan bir tasarruf aracıdır. Vade dolmadan çekilirse faiz hakkı kaybedilebilir. Genellikle düşük riskli yatırım olarak görülür.
-"""
-    answer = generate_answer(context, question)
-    print("\n🧠 Yanıt:")
-    print(answer)
+    """
+    Bankacılık asistanı için interaktif komut satırı uygulaması.
+    Her soruyu ayrı işlem olarak işler, geçmişi hatırlamaz.
+    """
+    import json
+    from your_embedding_module import embed_query
+    from search import search_context
+    from rag import generate_answer
+
+    # Upload embedding data
+    with open("output/embeddings.jsonl", "r") as f:
+        indexed_data = [json.loads(line) for line in f]
+
+    while True:
+        question = input("💬 Soru (çıkmak için -q): ").strip()
+        if question.lower() in ["-q", "--quit", "çık", "exit"]:
+            print("🔚 Çıkılıyor...")
+            break
+
+        # 1. Embed the question
+        query_embedding = embed_query(question)
+
+        # 2. Find closest contexts.
+        top_context = search_context(query_embedding, indexed_data, k=5)
+
+        # 3. Generate Answer
+        answer = generate_answer(top_context, question)
+
+        # 4. Answer
+        print("\n📌 Yanıt:\n" + answer + "\n" + "-"*50)
+
 
 if __name__ == "__main__":
     main()
