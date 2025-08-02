@@ -14,16 +14,23 @@ import pandas as pd
 import json
 from groq import Groq
 
-GROQ_API_KEY = "YOUR_API_KEY_HERE"
+GROQ_API_KEY = ""
 client = Groq(api_key=GROQ_API_KEY)
 
 def embed_text(text):
     """
-    TODO:
-    - Groq Embedding API çağır
-    - Model adını belirle
+    Calling Groq Embedding API'yi turns the text into vectors.
     """
-    return [0.0]*1536  # Dummy örnek vektör
+    try:
+        response = client.embeddings.create(
+            model="nomic-embed-text-v1", #llama3-70b-8192 or BAAI/bge-m3
+            input=text
+        )
+        return response.data[0].embedding
+    except Exception as e:
+        print(f"[!] Embedding hatası: {e}")
+        return [0.0]*1536  
+
 
 def main():
     df = pd.read_csv('../output/chunked_data.csv')
