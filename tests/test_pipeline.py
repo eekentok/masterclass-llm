@@ -7,16 +7,21 @@ Amaç:
 - Basit test kontrolleri
 """
 
+import pandas as pd
+
 def test_no_empty_rows():
     """
-    TODO:
-    - Cleaned CSV'de boş satır var mı kontrol et
+    Cleaned CSV'de boş satır var mı kontrol et.
     """
-    pass
+    df = pd.read_csv('output/cleaned_data.csv')
+    assert not df.isnull().any().any(), "❌ Cleaned CSV içinde boş satır(lar) var!"
 
-def test_chunk_length():
+def test_chunk_length(max_length=500):
     """
-    TODO:
-    - Chunk uzunluğu limit kontrolü
+    Chunk uzunluğu limit kontrolü (kelime bazlı).
     """
-    pass
+    df = pd.read_csv('output/chunked_data.csv')
+    for i, row in df.iterrows():
+        words = str(row['chunk']).split()
+        assert len(words) <= max_length, f"❌ Chunk {i} kelime sınırını aşıyor: {len(words)} kelime"
+    
