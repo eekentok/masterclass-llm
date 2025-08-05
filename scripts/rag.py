@@ -91,7 +91,7 @@ def main():
         # ChromaDB'den en yakın 5 chunk'ı çek
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=10,
+            n_results=15,
             include=['documents']
         )
         context = "\n---\n".join(results['documents'][0])
