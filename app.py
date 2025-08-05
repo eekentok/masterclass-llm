@@ -30,31 +30,43 @@ embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 MAX_HISTORY = 10
 
-def generate_answer(context, question, chat_history=None):
+# Available models
+AVAILABLE_MODELS = {
+    "llama3-70b-8192": "Llama 3 70B (Daha kısa cevaplar)",
+    "Qwen/Qwen3-32B": "Qwen 3 (Daha uzun cevaplar)"
+}
+
+def generate_answer(context, question, chat_history=None, choose_model="llama3-70b-8192"):
     """
-    Generate answer using Groq ChatCompletion API
+    Generate answer using Groq ChatCompletion API with model selection
     """
     if chat_history is None:
         chat_history = []
+
+    system_prompt = (
+        "Use only the provided context information to generate your answer."
+        "Rules:\n"
+        "- Be helpful, kind, and concise.\n"
+        "- If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.'\n"
+        "- Do not generate opinions, investment advice, or financial consulting.\n"
+        "- Never ask for or store personal information.\n"
+        "- Always respond in Turkish.\n"
+        "- If the user asks a question in another language, answer in that language using English-generated content translated to the user's language.\n"
+        "Provided context:\n"
+        f"{context}\n\n"
+        "User question: "
+        f"{question}\nAnswer:"
+    )
     
-    # Prepare messages for the API call
-    messages = [
-        {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures. Always respond in Turkish. If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.' Do not generate opinions, investment advice, or financial consulting. Never ask for or store personal information. When providing lists, use proper HTML formatting: <ul><li>Item 1</li><li>Item 2</li></ul> for bullet lists or <ol><li>Item 1</li><li>Item 2</li></ol> for numbered lists."}
+    # Chat history'yi kullan
+    messages = chat_history + [
+        {"role": "user",
+        "content": system_prompt}
     ]
-    
-    # Add chat history if provided
-    if chat_history:
-        # Limit history to last MAX_HISTORY*2 messages
-        trimmed_history = chat_history[-MAX_HISTORY*2:]
-        messages.extend(trimmed_history)
-    
-    # Add current question with context (matching rag.py approach)
-    user_message = f"{context}\n\nSoru: {question}\nCevap:"
-    messages.append({"role": "user", "content": user_message})
     
     try:
         response = client.chat.completions.create(
-            model=os.getenv("LLM_MODEL"),
+            model=choose_model,
             messages=messages
         )
         return response.choices[0].message.content.strip()
@@ -64,7 +76,15 @@ def generate_answer(context, question, chat_history=None):
 @app.route('/')
 def index():
     """Render the main chat interface"""
-    return render_template('index.html')
+    return render_template('index.html', models=AVAILABLE_MODELS)
+
+@app.route('/api/models')
+def get_models():
+    """Get available models"""
+    return jsonify({
+        'models': AVAILABLE_MODELS,
+        'default_model': 'llama3-70b-8192'
+    })
 
 @app.route('/api/chat', methods=['POST'])
 def chat():
@@ -73,9 +93,14 @@ def chat():
         data = request.get_json()
         question = data.get('message', '').strip()
         chat_history = data.get('history', [])
+        selected_model = data.get('model', 'llama3-70b-8192')
         
         if not question:
             return jsonify({'error': 'Soru boş olamaz'}), 400
+        
+        # Validate model selection
+        if selected_model not in AVAILABLE_MODELS:
+            selected_model = 'llama3-70b-8192'
         
         # Generate query embedding
         query_embedding = embedding_model.encode(question).tolist()
@@ -83,22 +108,24 @@ def chat():
         # Get relevant chunks from ChromaDB
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=10,
+            n_results=15,  # Increased from 10 to match rag.py
             include=['documents']
         )
         
         # Prepare context from retrieved documents
         context = "\n---\n".join(results['documents'][0]) if results['documents'][0] else ""
         
-        # Generate answer
-        answer = generate_answer(context, question, chat_history)
+        # Generate answer with selected model
+        answer = generate_answer(context, question, chat_history, selected_model)
         
         # Prepare response
         response_data = {
             'answer': answer,
             'timestamp': datetime.now().isoformat(),
             'context_used': bool(context),
-            'context_length': len(context)
+            'context_length': len(context),
+            'model_used': selected_model,
+            'model_name': AVAILABLE_MODELS.get(selected_model, selected_model)
         }
         
         return jsonify(response_data)
@@ -112,4 +139,4 @@ def health_check():
     return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000) 
+    app.run(debug=True, host='0.0.0.0', port=5001) 

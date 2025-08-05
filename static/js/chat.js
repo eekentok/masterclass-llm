@@ -3,6 +3,7 @@ class ChatInterface {
     constructor() {
         this.chatHistory = [];
         this.isLoading = false;
+        this.selectedModel = 'llama3-70b-8192'; // Default model
         this.init();
     }
 
@@ -12,6 +13,7 @@ class ChatInterface {
         this.setWelcomeTime();
         this.checkConnection();
         this.autoResizeTextarea();
+        this.loadModels();
     }
 
     setupElements() {
@@ -24,6 +26,7 @@ class ChatInterface {
         this.statusDot = document.getElementById('statusDot');
         this.statusText = document.getElementById('statusText');
         this.quickButtons = document.querySelectorAll('.quick-btn');
+        this.modelSelect = document.getElementById('modelSelect');
     }
 
     setupEventListeners() {
@@ -47,6 +50,14 @@ class ChatInterface {
         // Clear chat
         this.clearChatBtn.addEventListener('click', () => this.clearChat());
 
+        // Model selection
+        if (this.modelSelect) {
+            this.modelSelect.addEventListener('change', (e) => {
+                this.selectedModel = e.target.value;
+                console.log('Model changed to:', this.selectedModel);
+            });
+        }
+
         // Quick action buttons
         this.quickButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -59,6 +70,34 @@ class ChatInterface {
         // Enable/disable send button based on input
         this.messageInput.addEventListener('input', () => {
             this.sendButton.disabled = !this.messageInput.value.trim();
+        });
+    }
+
+    async loadModels() {
+        try {
+            const response = await fetch('/api/models');
+            if (response.ok) {
+                const data = await response.json();
+                this.populateModelDropdown(data.models, data.default_model);
+            }
+        } catch (error) {
+            console.error('Failed to load models:', error);
+        }
+    }
+
+    populateModelDropdown(models, defaultModel) {
+        if (!this.modelSelect) return;
+        
+        this.modelSelect.innerHTML = '';
+        Object.entries(models).forEach(([key, value]) => {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = value;
+            if (key === defaultModel) {
+                option.selected = true;
+                this.selectedModel = key;
+            }
+            this.modelSelect.appendChild(option);
         });
     }
 
@@ -128,15 +167,16 @@ class ChatInterface {
                 },
                 body: JSON.stringify({
                     message: message,
-                    history: this.chatHistory
+                    history: this.chatHistory,
+                    model: this.selectedModel
                 })
             });
 
             const data = await response.json();
 
             if (response.ok) {
-                // Add bot response to chat
-                this.addMessage(data.answer, 'bot');
+                // Add bot response to chat with model info
+                this.addMessage(data.answer, 'bot', data.model_name);
                 
                 // Update chat history
                 this.chatHistory.push({ role: 'user', content: message });
@@ -156,7 +196,7 @@ class ChatInterface {
         }
     }
 
-    addMessage(text, sender) {
+    addMessage(text, sender, modelName = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${sender}-message`;
 
@@ -181,6 +221,17 @@ class ChatInterface {
         const messageTime = document.createElement('div');
         messageTime.className = 'message-time';
         messageTime.textContent = this.formatTime(new Date());
+
+        // Add model info for bot messages
+        if (sender === 'bot' && modelName) {
+            const modelInfo = document.createElement('div');
+            modelInfo.className = 'message-model';
+            modelInfo.textContent = `Model: ${modelName}`;
+            modelInfo.style.fontSize = '0.75rem';
+            modelInfo.style.opacity = '0.7';
+            modelInfo.style.marginTop = '4px';
+            content.appendChild(modelInfo);
+        }
 
         content.appendChild(messageText);
         content.appendChild(messageTime);
