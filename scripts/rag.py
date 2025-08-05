@@ -29,7 +29,7 @@ embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 MAX_HISTORY = 10  # Sohbet geçmişinde tutulacak maksimum soru-cevap çifti
 
-def generate_answer(context, question, chat_history=None):
+def generate_answer(context, question, chat_history=None, choose_model="llama3-70b-8192"):
     """
     TODO:
     - ChatCompletion çağrısı yap
@@ -42,6 +42,7 @@ def generate_answer(context, question, chat_history=None):
     system_prompt = (
         "Use only the provided context information to generate your answer."
         "Rules:\n"
+        "- Be helpful, kind, and concise.\n"
         "- If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.'\n"
         "- Do not generate opinions, investment advice, or financial consulting.\n"
         "- Never ask for or store personal information.\n"
@@ -60,7 +61,7 @@ def generate_answer(context, question, chat_history=None):
     ]
     
     response = client.chat.completions.create(
-        model=os.getenv("LLM_MODEL"),
+        model=choose_model,
         messages=messages
     )
     return response.choices[0].message.content.strip()
@@ -69,6 +70,16 @@ def main():
     chat_history = [
         {"role": "system", "content": "You are a polite, professional, and accurate AI assistant developed for Türkiye İş Bankası. Your task is to answer user questions about banking products, services, and procedures."}
     ]
+    choose_model = input("1.LLama 3 70B (Daha kısa cevaplar)\n2.Qwen 3(Daha uzun cevaplar)\nDevam etmek için model seçin, 1 veya 2 yazın: ")
+    if choose_model == "" or choose_model == "1":
+        choose_model = "llama3-70b-8192"
+    elif choose_model == "2":
+        choose_model = "Qwen/Qwen3-32B"
+    else:
+        print("Geçerli bir model seçilmedi, LLama 3 70B seçiliyor.\n")
+        choose_model = "llama3-70b-8192"
+    print(f"Model: {choose_model}\n")
+    
     while True:
         question = input("Soru girin: ")
         if question.strip() in ["-q", "--quit"]:
@@ -79,14 +90,14 @@ def main():
         # ChromaDB'den en yakın x chunk'ı çek
         results = collection.query(
             query_embeddings=[query_embedding],
-            n_results=10,
+            n_results=15,
             include=['documents']
         )
         context = "\n---\n".join(results['documents'][0])
         # Sohbet geçmişinin son MAX_HISTORY*2 mesajını (soru-cevap) al
         trimmed_history = chat_history[-MAX_HISTORY*2:]
         # generate_answer fonksiyonunu kullan
-        answer = generate_answer(context, question, trimmed_history)
+        answer = generate_answer(context, question, trimmed_history, choose_model = choose_model)
         print("\nYanıt:")
         print(answer + "\n--------------------------------")
         # Sohbet geçmişine ekle
