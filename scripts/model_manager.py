@@ -83,7 +83,7 @@ def list_models():
 
     print("📂 Mevcut Modeller:")
     for model in models:
-        print(f"ID: {model['model_id']}, Ad: {model['model_name']}, Başlık: {model['model_title']}, Kategori: {model['model_category']}")
+        print(f"---------------------------------\nID: {model['model_id']}\n Ad: {model['model_name']}\n Başlık: {model['model_title']}\n Kategori: {model['model_category']}\n---------------------------------")
 
 def main():
     while True:
@@ -92,7 +92,7 @@ def main():
         print("2. Model Düzenle")
         print("3. Model Sil")
         print("4. Modelleri Listele")
-        print("5. Çıkış")
+        print("-q: Çıkış")
 
         choice = input("Seçiminizi yapın: ")
         
@@ -112,7 +112,7 @@ def main():
             delete_model(model_id)
         elif choice == "4":
             list_models()
-        elif choice == "5":
+        elif choice == "-q" or choice == "--quit":
             print("Çıkılıyor...")
             break
         else:

@@ -12,9 +12,11 @@ Amaç:
 
 from groq import Groq
 from dotenv import load_dotenv
+import json
 import os
 import chromadb
 from sentence_transformers import SentenceTransformer
+
 
 load_dotenv()
 
@@ -66,36 +68,35 @@ def generate_answer(context, question, chat_history=None, choose_model="llama3-7
     )
     return response.choices[0].message.content.strip()
 
+def choose_model():
+    MODELS_FILE = "./data/models.json"
+
+    if not os.path.exists(MODELS_FILE):
+        print("Models file not found. Please add models to the data/models.json file.")
+    else:
+        with open(MODELS_FILE, "r") as f:
+            models = json.load(f)
+        
+        print("Available models:")
+        for model in models:
+            print(f"{model['model_id']}: {model['model_title']} ({model['model_category']})")
+        
+        model_id = input("Select a model by ID: ")
+        selected_model = next((m for m in models if str(m["model_id"]) == model_id), None)
+        
+        if selected_model:
+            return selected_model["model_name"]
+        else:
+            print("Invalid model ID. Defaulting to 'llama3-70b-8192'.")
+            return "llama3-70b-8192"
+
 def main():
     chat_history = [
         {"role": "system", 
         "content": "Sen Türkiye İş Bankası için tasarlanmış bir bankacılık asistanısın. Görevin sorulan bankacılık hizmetleri, ürünleri ve süreçleri hakkında sorulara elindeki bilgileri kullanarak cevap vermek."}
     ]
-    choose_model = input("1.LLama 3 70B (Daha kısa cevaplar)\n2.Qwen 3(Daha uzun cevaplar)\nDevam etmek için model seçin, 1 veya 2 yazın: ")
-    if choose_model == "" or choose_model == "1":
-        choose_model = "llama3-70b-8192"
-    elif choose_model == "2":
-        choose_model = "Qwen/Qwen3-32B"
-    elif choose_model == "-x" or choose_model == "--experimental":
-        print("Deneysel mod seçildi, aşağıdakilerden birini seçiniz ya da model adını yazınız:\n")
-        choose_model = input("1.GPT OSS 20B\n2.GPT OSS 120B")
-        if choose_model == "1":
-            choose_model = "openai/gpt-oss-20b"
-        elif choose_model == "2":
-            choose_model = "openai/gpt-oss-120b"
-        else:
-            choose_model = choose_model.strip()
-            if not choose_model:
-                print("Geçerli bir model adı girilmedi, LLama 3 70B seçiliyor.\n")
-                choose_model = "llama3-70b-8192"
-    elif choose_model == "-q" or choose_model == "--quit":
-        print("Çıkılıyor...")
-        return
-    else:
-        print("Geçerli bir model seçilmedi, LLama 3 70B seçiliyor.\n")
-        choose_model = "llama3-70b-8192"
-    print(f"Model: {choose_model}\n")
-    
+    model = choose_model()
+
     while True:
         question = input("Soru girin: ")
         if question.strip() in ["-q", "--quit"]:
@@ -113,7 +114,7 @@ def main():
         # Sohbet geçmişinin son MAX_HISTORY*2 mesajını (soru-cevap) al
         trimmed_history = chat_history[-MAX_HISTORY*2:]
         # generate_answer fonksiyonunu kullan
-        answer = generate_answer(context, question, trimmed_history, choose_model = choose_model)
+        answer = generate_answer(context, question, trimmed_history, choose_model = model)
         print("\nYanıt:")
         print(answer + "\n--------------------------------")
         # Sohbet geçmişine ekle
