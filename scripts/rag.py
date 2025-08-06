@@ -76,6 +76,21 @@ def main():
         choose_model = "llama3-70b-8192"
     elif choose_model == "2":
         choose_model = "Qwen/Qwen3-32B"
+    elif choose_model == "-x" or choose_model == "--experimental":
+        print("Deneysel mod seçildi, aşağıdakilerden birini seçiniz ya da model adını yazınız:\n")
+        choose_model = input("1.GPT OSS 20B\n2.GPT OSS 120B")
+        if choose_model == "1":
+            choose_model = "openai/gpt-oss-20b"
+        elif choose_model == "2":
+            choose_model = "openai/gpt-oss-120b"
+        else:
+            choose_model = choose_model.strip()
+            if not choose_model:
+                print("Geçerli bir model adı girilmedi, LLama 3 70B seçiliyor.\n")
+                choose_model = "llama3-70b-8192"
+    elif choose_model == "-q" or choose_model == "--quit":
+        print("Çıkılıyor...")
+        return
     else:
         print("Geçerli bir model seçilmedi, LLama 3 70B seçiliyor.\n")
         choose_model = "llama3-70b-8192"

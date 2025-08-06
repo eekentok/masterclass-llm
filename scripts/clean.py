@@ -29,6 +29,8 @@ def clean_navigation_text(text):
         r'\[\d+\]',
         #Köşeli parantezler içindeki metinleri temizle
         r'\[.*?\]',
+        # <| ve |> arasındaki metinleri temizle
+        r'<\|.*?\|>',
     ]
 
     for pattern in patterns:

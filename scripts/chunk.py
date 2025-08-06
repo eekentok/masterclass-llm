@@ -15,6 +15,8 @@ import openai
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
+import langcodes
+from langdetect import detect
 
 #Get .env file
 load_dotenv()
