@@ -57,7 +57,7 @@ Aşağıda bir kullanıcının sorusu ve bu soruya dair bazı bilgi parçaları 
 
     try:
         response = client.chat.completions.create(
-            model="llama3-70b-8192",  # veya llama3-8b-8192
+            model="gpt-4",  # veya llama3-8b-8192 veya llama3-70b-8192
             messages=[
                 {"role": "system", "content": "Sen bir finans asistanısın. Soruları açık, anlaşılır ve bağlama dayalı olarak cevapla."},
                 {"role": "user", "content": prompt}
