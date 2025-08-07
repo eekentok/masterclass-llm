@@ -4,3 +4,10 @@ openai
 numpy
 python-dotenv
 sentence-transformers
+stanza
+spacy-stanza
+chromadb
+langdetect
+tiktoken
+requests
+beautifulsoup4

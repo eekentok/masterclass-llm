@@ -16,6 +16,16 @@ import json
 import os
 import chromadb
 from sentence_transformers import SentenceTransformer
+from langdetect import detect
+import langcodes
+
+def detect_language_name(text):
+    lang_code = detect(text)
+    try:
+        return langcodes.get(lang_code).language_name()
+    except:
+        return f"Unknown ({lang_code})"
+
 
 
 load_dotenv()
@@ -31,7 +41,7 @@ embedding_model = SentenceTransformer('paraphrase-multilingual-MiniLM-L12-v2')
 
 MAX_HISTORY = 10  # Sohbet geçmişinde tutulacak maksimum soru-cevap çifti
 
-def generate_answer(context, question, chat_history=None, choose_model="llama3-70b-8192"):
+def generate_answer(context, question, chat_history=None, choose_model="llama3-70b-8192", language = "Turkish"):
     """
     TODO:
     - ChatCompletion çağrısı yap
@@ -48,7 +58,7 @@ def generate_answer(context, question, chat_history=None, choose_model="llama3-7
         "- If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.'\n"
         "- Do not generate opinions, investment advice, or financial consulting.\n"
         "- Never ask for or store personal information.\n"
-        "- Always respond in Turkish.\n"
+        "- Always respond in " + language + "\n"
         "- If the user asks a question in another language, answer in that language using English-generated content translated to the user's language.\n"
         "Provided context:\n"
         f"{context}\n\n"
@@ -99,11 +109,19 @@ def main():
 
     while True:
         question = input("Soru girin: ")
+
         if question.strip() in ["-q", "--quit"]:
             print("Çıkılıyor...")
             break
+        
+        #Girilen promptun dilini ve dil kodunu algıla
+        #lang_code = detect(question) #Gerekirse bu satırı dil kodunu algılamak için kullanabilirsiniz
+        language = detect_language_name(question)
+        #print(f"Algılanan dil: {language}")
+        
         # Sorgu embedding'i üret
         query_embedding = embedding_model.encode(question).tolist()
+        
         # ChromaDB'den en yakın 5 chunk'ı çek
         results = collection.query(
             query_embeddings=[query_embedding],
@@ -111,12 +129,15 @@ def main():
             include=['documents']
         )
         context = "\n---\n".join(results['documents'][0])
+        
         # Sohbet geçmişinin son MAX_HISTORY*2 mesajını (soru-cevap) al
         trimmed_history = chat_history[-MAX_HISTORY*2:]
+        
         # generate_answer fonksiyonunu kullan
-        answer = generate_answer(context, question, trimmed_history, choose_model = model)
+        answer = generate_answer(context, question, trimmed_history, choose_model = model, language = language)
         print("\nYanıt:")
         print(answer + "\n--------------------------------")
+        
         # Sohbet geçmişine ekle
         chat_history.append({"role": "user", "content": question})
         chat_history.append({"role": "assistant", "content": answer})
