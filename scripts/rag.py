@@ -11,29 +11,50 @@ Amaç:
 """
 
 
-from groq import Groq
+import faiss
+import numpy as np
 from dotenv import load_dotenv
 import os
+from groq import Groq
+from search import search_context
+import pandas as pd
+from langdetect import detect
+
 
 load_dotenv()
 
-api_key = os.getenv("api_key")
+api_key = os.getenv("API_KEY")
 client = Groq(api_key=api_key)
 
-def generate_answer(context, question):
+df = pd.read_csv("data/chunked_data.csv")
+chunked_data = df.to_dict(orient="records")
+
+def generate_answer(question):
     """
     Call ChatCompletion.
     """
     prompt = f"""
-Aşağıdaki bağlama (context) dayanarak kullanıcının sorusunu cevapla.
+Sen finans, bankacılık ve ekonomi alanlarında uzmanlaşmış bir yapay zekâ danışmanısın.
+Aşağıda bir kullanıcının sorusu ve bu soruya dair bazı bilgi parçaları (bağlam) yer alıyor. Görevin, bu bağlama dayanarak doğru, açık ve tekrar etmeyen bir cevap üretmek.
+❗️ Cevabını hazırlarken şu kurallara dikkat et:
+- Aynı kelimeleri tekrar tekrar kullanma. Anlamı koruyarak eş anlamlılarla zenginleştir.
+- Gereksiz tekrarlar, döngüsel anlatımlar ve soyut genellemelerden kaçın.
+- Uzunsa madde madde yaz.
+- Elindeki bilgi yetersizse bunu dürüstçe belirt.
+- Üst üste aynı kelimeleri kullanma.
 
-Soru: {question}
+### DİL ###
+{detect(question)}
 
-Bağlam:
-{context}
+### BAĞLAM ###
+{search_context(question)}
 
-Cevap:
+### SORU ###
+{question}
+
+### CEVAP ###
 """
+
     try:
         response = client.chat.completions.create(
             model="llama3-70b-8192",  # veya llama3-8b-8192
@@ -51,31 +72,13 @@ def main():
     Bankacılık asistanı için interaktif komut satırı uygulaması.
     Her soruyu ayrı işlem olarak işler, geçmişi hatırlamaz.
     """
-    import json
-    from your_embedding_module import embed_query
-    from search import search_context
-    from rag import generate_answer
-
-    # Upload embedding data
-    with open("output/embeddings.jsonl", "r") as f:
-        indexed_data = [json.loads(line) for line in f]
-
     while True:
-        question = input("💬 Soru (çıkmak için -q): ").strip()
-        if question.lower() in ["-q", "--quit", "çık", "exit"]:
+        question = input("💬 Soru (çıkmak için dur): ").strip()
+        if question.lower() in ["q", "-quit", "çık", "exit", "dur", "du", "d"]:
             print("🔚 Çıkılıyor...")
             break
 
-        # 1. Embed the question
-        query_embedding = embed_query(question)
-
-        # 2. Find closest contexts.
-        top_context = search_context(query_embedding, indexed_data, k=5)
-
-        # 3. Generate Answer
-        answer = generate_answer(top_context, question)
-
-        # 4. Answer
+        answer = generate_answer(question)
         print("\n📌 Yanıt:\n" + answer + "\n" + "-"*50)
 
 

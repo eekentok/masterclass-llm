@@ -10,60 +10,69 @@ Amaç:
 - En yakın chunk'ları bul ve göster
 """
 
+import pandas as pd
 import numpy as np
 import json
 from groq import Groq
 from dotenv import load_dotenv
 import os
+import faiss
+import numpy as np
+import pickle
+import openai
+from embed import model
+from transformers import AutoTokenizer
+
 
 load_dotenv()
-api_key = os.getenv("api_key")
+api_key = os.getenv("API_KEY")  # .env dosyasından API anahtarını al
 client = Groq(api_key=api_key)
 
-def cosine_similarity(a, b):
-    """Calculates the similarity between two vectors"""
-    a = np.array(a)
-    b = np.array(b)
-    return np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b))
+df_chunked = pd.read_csv("data/chunked_data.csv")
+chunked_data = df_chunked.to_dict(orient="records")
+embedding_array = np.load("data/embedding_array.npy").astype("float32") # load the embeddings from the file
+embedding_dim = embedding_array.shape[1] #dimension of vector (size)
+index = faiss.IndexFlatL2(embedding_dim) # create index
+index.add(embedding_array) # add faiss indexes to array
 
-def embed_query(text):
-    """Turn the question into embeddings"""
-    try:
-        response = client.embeddings.create(
-            model="nomic-embed-text-v1",
-            input=text
-        )
-        return response.data[0].embedding
-    except Exception as e:
-        print(f"[!] Embed hatası: {e}")
-        return None
 
-def main():
-    query = input("❓Sorunuzu girin:")
-    query_embedding = embed_query(query)
-    if query_embedding is None:
-        return
+metadata = [
+    {
+        "text": chunk["text"],
+        "title": chunk.get("title", ""),
+        "url": chunk["url"]
+    }
+    for chunk in chunked_data
+] # create a metadata with all embeddings, titles, and faiss index
 
-    records = []
-    with open("../output/embeddings.jsonl", "r") as f:
-        for line in f:
-            records.append(json.loads(line))
 
-    # Calcualte similarities between all records
-    scored = []
-    for record in records:
-        score = cosine_similarity(query_embedding, record["embedding"])
-        scored.append((score, record))
+# write FAISS index in the file
+faiss.write_index(index, "data/faiss_index.index")
 
-    # En yüksek skorlu 3 chunk'ı getir
-    top_k = sorted(scored, key=lambda x: x[0], reverse=True)[:3]
+# save Metadata with pickle
+with open("data/faiss_metadata.pkl", "wb") as f:
+    pickle.dump(metadata, f)
 
-    print("\n📚 En yakın içerikler:")
-    for i, (score, record) in enumerate(top_k, 1):
-        print(f"\n#{i} | Skor: {score:.3f}")
-        print(f"Başlık: {record['title']}")
-        print(f"Kaynak: {record['url']}")
-        print(f"Metin: {record['chunk'][:300]}...")  # İlk 300 karakter
+def search_context(query, k=5):
+    query_embedding = model.encode([query]).astype("float32")
+    D, I = index.search(query_embedding, k)
+    from transformers import AutoTokenizer
 
-if __name__ == "__main__":
-    main()
+    tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
+    max_token_limit = 512 
+
+    current_tokens = 0
+    selected_chunks = []
+
+    context_chunks = [metadata[i]["text"] for i in I[0]]
+
+
+    for chunk in context_chunks:
+        tokens = len(tokenizer.tokenize(chunk))
+        if current_tokens + tokens > max_token_limit:
+            break
+        selected_chunks.append(chunk)
+        current_tokens += tokens
+
+    joined_context = "\n\n".join(selected_chunks)
+    return joined_context
