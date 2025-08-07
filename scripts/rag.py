@@ -77,6 +77,29 @@ def generate_answer(context, question, chat_history=None, choose_model="llama3-7
     )
     return response.choices[0].message.content.strip()
 
+def generate_chat_history(question, chat_history = []):
+    """
+    Girilen soruyu ve sohbet geçmişini kullanarak LLM için bir özet oluştur ve context oluştur.
+    """
+    sum_model = "llama3-8b-8192"  # Özetleme için kullanılacak model
+
+    if chat_history is None:
+        chat_history = []
+
+    system_prompt = (
+        "Use only the provided context information to generate your answer."
+        "Rules:\n"
+        "- Be helpful, kind, and concise.\n"
+        "- If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.'\n"
+        "- Do not generate opinions, investment advice, or financial consulting.\n"
+        "- Never ask for or store personal information.\n"
+        "- Respond in " + language + "\n"
+        "Provided context:\n"
+        f"{context}\n\n"
+        "User question: "
+        f"{question}\nAnswer:"
+    )
+
 def choose_model():
     MODELS_FILE = "./data/models.json"
 

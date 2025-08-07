@@ -11,38 +11,63 @@ Amaç:
 
 import pandas as pd
 from transformers import AutoTokenizer
-import openai
-from openai import OpenAI
-from dotenv import load_dotenv
 import os
 import langcodes
 from langdetect import detect
+import stanza
+import spacy_stanza
 
-#Get .env file
-load_dotenv()
+# İlk indirmeleri yap
+#stanza.download("en")
+#stanza.download("tr")
 
-#Get API key from .env file
-api_key = os.getenv("API_KEY")
+# Pipelineleri yükle
+nlp_tr = spacy_stanza.load_pipeline("tr")
+nlp_en = spacy_stanza.load_pipeline("en")
 
-#Create OpenAI client
-client = OpenAI(api_key=api_key)
+# Metni cümlelere ayır
+def split_sentences(text):
+    lang = detect(text)
+    if lang == "tr":
+        doc = nlp_tr(text)
+    elif lang == "en":
+        doc = nlp_en(text)
+    else:
+        # Varsayılan olarak Türkçeyi dene
+        doc = nlp_tr(text)
 
-def chunk_text(text, size=100):
-    """
-    TODO:
-    - text.split() ile kelimelere ayır
-    - belirli büyüklükte parçala
-    """
-    return [text]  # Şu an parçalamıyor
+    return [sent.text.strip() for sent in doc.sents]
 
 def chunk_text_token_llama3(text, chunk_size=500, model_name="unsloth/llama-3-8b-bnb-4bit"):
     """
-    Token-based chunking using HuggingFace's Llama 3 tokenizer.
+    Sentence-aware token-based chunking using HuggingFace's Llama 3 tokenizer.
+    Sentences are not split across chunks.
     """
     tokenizer = AutoTokenizer.from_pretrained(model_name)
-    tokens = tokenizer.encode(str(text))
-    chunks = [tokens[i:i+chunk_size] for i in range(0, len(tokens), chunk_size)]
-    return [tokenizer.decode(chunk) for chunk in chunks]
+    sentences = split_sentences(text)
+    chunks = []
+    current_chunk = ""
+    current_tokens = 0
+
+    for sentence in sentences:
+        sentence_tokens = len(tokenizer.encode(sentence, add_special_tokens=False))
+        # If adding this sentence would exceed the chunk size, start a new chunk
+        if current_tokens + sentence_tokens > chunk_size:
+            if current_chunk:
+                chunks.append(current_chunk.strip())
+            current_chunk = sentence
+            current_tokens = sentence_tokens
+        else:
+            if current_chunk:
+                current_chunk += " " + sentence
+            else:
+                current_chunk = sentence
+            current_tokens += sentence_tokens
+
+    if current_chunk:
+        chunks.append(current_chunk.strip())
+
+    return chunks
 
 
 def main():
@@ -67,7 +92,7 @@ def main():
             records.append(new_row)
 
     out_df = pd.DataFrame(records)
-    out_df.to_csv('./data/chunked_traf_data.csv', index=False)
+    out_df.to_csv('./data/new_chunked_traf_data.csv', index=False)
     print("✅ Chunking completed. Output: chunked_traf_data.csv")
 if __name__ == "__main__":
     main()
