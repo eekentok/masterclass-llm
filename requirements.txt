@@ -114,3 +114,5 @@ faiss-cpu
 openai
 detect
 langdetect
+pytest
+

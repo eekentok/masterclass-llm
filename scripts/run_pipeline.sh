@@ -3,10 +3,10 @@
 echo "📌 Pipeline başlatılıyor..."
 
 echo "📥 1. Scraping başlatılıyor..."
-python3 scripts/scrapper.py
+python3 scripts/read_links.py
 
 echo "🧼 2. Temizleme işlemi başlatılıyor..."
-python3 scripts/clean.py
+python3 scripts/scrape_clean.py
 
 echo "🔪 3. Chunking işlemi başlatılıyor..."
 python3 scripts/chunk.py
