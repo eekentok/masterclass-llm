@@ -155,7 +155,7 @@ def main():
         #Girilen promptun dilini ve dil kodunu algıla
         #lang_code = detect(question) #Gerekirse bu satırı dil kodunu algılamak için kullanabilirsiniz
         language = detect_language_name(question)
-        if language not in ["Turkish", "English"] and len(question) < 15:
+        if language not in ["Turkish", "English"] and len(question) < 25:
             language = "Turkish"
         print(f"Algılanan dil: {language}")
         
