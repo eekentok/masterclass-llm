@@ -86,6 +86,11 @@ def generate_chat_history(question, chat_history = []):
     if chat_history is None:
         chat_history = []
 
+    '''
+    if language != "Turkish" or language != "English":
+        language = "Turkish"
+    '''
+
     system_prompt = (
         "Use only the provided context information to generate your answer."
         "Rules:\n"
@@ -93,7 +98,7 @@ def generate_chat_history(question, chat_history = []):
         "- If the answer is not in the provided context, say: 'Bu konuda elimde bilgi yok.'\n"
         "- Do not generate opinions, investment advice, or financial consulting.\n"
         "- Never ask for or store personal information.\n"
-        "- Respond in " + language + "\n"
+        f"- Always respond in {language}\n"
         "Provided context:\n"
         f"{context}\n\n"
         "User question: "
@@ -118,16 +123,22 @@ def choose_model():
         
         if selected_model:
             return selected_model["model_name"]
+        elif model_id == "" or model_id is None:
+            print("No model selected. Defaulting to 'gpt-oss-20b'.")
+            return "openai/gpt-oss-20b"
         else:
-            print("Invalid model ID. Defaulting to 'llama3-70b-8192'.")
-            return "llama3-70b-8192"
+            print("Invalid model ID. Defaulting to 'gpt-oss-20b'.")
+            return "openai/gpt-oss-20b"
 
 def main():
     chat_history = [
         {"role": "system", 
         "content": "Sen Türkiye İş Bankası için tasarlanmış bir bankacılık asistanısın. Görevin sorulan bankacılık hizmetleri, ürünleri ve süreçleri hakkında sorulara elindeki bilgileri kullanarak cevap vermek."}
     ]
+
+    # Kullanıcıdan model seçimi yap    
     model = choose_model()
+    print("--------------------------------")
 
     while True:
         question = input("Soru girin: ")
@@ -135,11 +146,18 @@ def main():
         if question.strip() in ["-q", "--quit"]:
             print("Çıkılıyor...")
             break
+        elif question.strip() in ["-m", "--change-model"]:
+            print("Model değiştiriliyor...\n")
+            model = choose_model()
+            print("--------------------------------")
+            continue
         
         #Girilen promptun dilini ve dil kodunu algıla
         #lang_code = detect(question) #Gerekirse bu satırı dil kodunu algılamak için kullanabilirsiniz
         language = detect_language_name(question)
-        #print(f"Algılanan dil: {language}")
+        if language not in ["Turkish", "English"] and len(question) < 15:
+            language = "Turkish"
+        print(f"Algılanan dil: {language}")
         
         # Sorgu embedding'i üret
         query_embedding = embedding_model.encode(question).tolist()

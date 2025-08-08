@@ -20,8 +20,8 @@ def generate_new_id(models):
     return max(model["model_id"] for model in models) + 1
 
 def add_model(model_name, model_title, model_category):
-    if model_category not in ["normal", "experimental"]:
-        print("❌ model_category sadece 'normal' veya 'experimental' olabilir.")
+    if model_category not in ["normal", "experimental","default"]:
+        print("❌ model_category sadece 'normal', 'experimental' veya 'default' olabilir.")
         return
 
     models = load_models()
@@ -48,8 +48,8 @@ def edit_model(model_id, new_name=None, new_title=None, new_category=None):
             if new_title:
                 model["model_title"] = new_title
             if new_category:
-                if new_category not in ["normal", "experimental"]:
-                    print("❌ model_category sadece 'normal' veya 'experimental' olabilir.")
+                if new_category not in ["normal", "experimental","default"]:
+                    print("❌ model_category sadece 'normal', 'experimental' veya 'default' olabilir.")
                     return
                 model["model_category"] = new_category
             found = True
@@ -85,6 +85,7 @@ def list_models():
     for model in models:
         print(f"---------------------------------\nID: {model['model_id']}\n Ad: {model['model_name']}\n Başlık: {model['model_title']}\n Kategori: {model['model_category']}\n---------------------------------")
 
+
 def main():
     while True:
         print("\nModel Yönetimi")
@@ -105,7 +106,7 @@ def main():
             model_id = int(input("Düzenlenecek Model ID: "))
             new_name = input("Yeni Model Adı (boş bırakmak için Enter): ") or None
             new_title = input("Yeni Model Başlığı (boş bırakmak için Enter): ") or None
-            new_category = input("Yeni Model Kategorisi (normal/experimental, boş bırakmak için Enter): ") or None
+            new_category = input("Yeni Model Kategorisi (normal/experimental/default, boş bırakmak için Enter): ") or None
             edit_model(model_id, new_name, new_title, new_category)
         elif choice == "3":
             model_id = int(input("Silinecek Model ID: "))

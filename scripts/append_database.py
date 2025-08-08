@@ -27,13 +27,9 @@ import trafilatura
 import sys
 sys.path.append('.')
 
-# Import cleaning functions from clean.py
 from scripts.clean import clean_navigation_text, replaceSpecialChars, str_basicclean
-
-# Import chunking function from chunk.py
-from scripts.chunk import chunk_text_token_llama3
-
-# Import embedding function from embed.py
+from scripts.chunk import split_sentences  # Import the sentence splitter
+from transformers import AutoTokenizer     # Import tokenizer for chunking
 from scripts.embed import embed_text
 
 def fetch_clean_text(url):
@@ -103,29 +99,84 @@ def clean_data(df):
     
     return df
 
-def chunk_data(df):
+def sentence_split_data(df):
     """
-    Chunk the data using the same logic as chunk.py
+    Split the data into sentences and save as a DataFrame.
     """
-    print("✂️ Chunking data...")
+    print("✂️ Splitting data into sentences...")
     records = []
-
     for idx, row in df.iterrows():
         content = row['content']
+        title = row.get('title', f'Row {idx}')
+        url = row['url']
+        sentences = split_sentences(content)
+        for sent_id, sentence in enumerate(sentences):
+            records.append({
+                'url': url,
+                'title': title,
+                'sentence': sentence,
+                'sentence_id': sent_id
+            })
+    return pd.DataFrame(records)
 
-        # A small print to see the title of the row that is being chunked
-        title = row.get('title', f'Row {idx}')  # Eğer 'title' yoksa satır numarası kullan
-        print(f"▶️ Chunking: {title}")
-        
-        chunks = chunk_text_token_llama3(content, chunk_size=500)
-        for chunk_id, chunk in enumerate(chunks):
-            new_row = {
-                'url': row['url'],
-                'title': row['title'],
-                'chunk': chunk,
-                'chunk_id': chunk_id
-            }
-            records.append(new_row)
+def chunk_sentences(df, chunk_size=500, model_name="unsloth/llama-3-8b-bnb-4bit"):
+    """
+    Tokenize and chunk sentences without splitting sentences or words.
+    """
+    print("✂️ Chunking sentences into token-based chunks...")
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    records = []
+    current_chunk = []
+    current_tokens = 0
+    chunk_id = 0
+    prev_url = None
+    prev_title = None
+
+    for idx, row in df.iterrows():
+        sentence = row['sentence']
+        url = row['url']
+        title = row['title']
+        sentence_tokens = len(tokenizer.encode(sentence, add_special_tokens=False))
+
+        # If new document, flush current chunk
+        if prev_url is not None and url != prev_url:
+            if current_chunk:
+                records.append({
+                    'url': prev_url,
+                    'title': prev_title,
+                    'chunk': " ".join(current_chunk),
+                    'chunk_id': chunk_id
+                })
+                chunk_id = 0
+                current_chunk = []
+                current_tokens = 0
+
+        if current_tokens + sentence_tokens > chunk_size:
+            if current_chunk:
+                records.append({
+                    'url': url,
+                    'title': title,
+                    'chunk': " ".join(current_chunk),
+                    'chunk_id': chunk_id
+                })
+                chunk_id += 1
+            current_chunk = [sentence]
+            current_tokens = sentence_tokens
+        else:
+            current_chunk.append(sentence)
+            current_tokens += sentence_tokens
+
+        prev_url = url
+        prev_title = title
+
+    # Add last chunk
+    if current_chunk:
+        records.append({
+            'url': prev_url,
+            'title': prev_title,
+            'chunk': " ".join(current_chunk),
+            'chunk_id': chunk_id
+        })
 
     return pd.DataFrame(records)
 
@@ -216,21 +267,26 @@ def main():
     df_cleaned.to_csv('./data/appender/cleaned_new_data.csv', index=False)
     print("✅ Cleaned data saved to data/appender/cleaned_new_data.csv")
     
-    # Step 2: Chunk data
-    df_chunked = chunk_data(df_cleaned)
+    # Step 2: Sentence split
+    df_sentences = sentence_split_data(df_cleaned)
+    df_sentences.to_csv('./data/appender/sentence_split_new_data.csv', index=False)
+    print("✅ Sentence split data saved to data/appender/sentence_split_new_data.csv")
+    
+    # Step 3: Chunk sentences
+    df_chunked = chunk_sentences(df_sentences, chunk_size=500)
     df_chunked.to_csv('./data/appender/chunked_new_data.csv', index=False)
     print("✅ Chunked data saved to data/appender/chunked_new_data.csv")
     
-    # Step 3: Create embeddings
+    # Step 4: Create embeddings
     embeddings_data = embed_data(df_chunked)
-    
+
     # Save embeddings to JSONL
     with open('./data/output/append_embeddings.jsonl', 'w') as f:
         for record in embeddings_data:
             f.write(json.dumps(record) + '\n')
     print("✅ Embeddings saved to data/output/append_embeddings.jsonl")
     
-    # Step 4: Append to ChromaDB
+    # Step 5: Append to ChromaDB
     append_to_chroma(embeddings_data)
     
     print("🎉 Append database pipeline completed successfully!")

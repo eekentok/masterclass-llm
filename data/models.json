@@ -1,7 +1,7 @@
 [
     {
         "model_id": 1,
-        "model_name": "meta-llama/llama3-70b-8192",
+        "model_name": "llama3-70b-8192",
         "model_title": "LLama 3 70B",
         "model_category": "normal"
     },
@@ -15,12 +15,18 @@
         "model_id": 3,
         "model_name": "openai/gpt-oss-20b",
         "model_title": "GPT OSS 20B",
-        "model_category": "experimental"
+        "model_category": "default"
     },
     {
         "model_id": 4,
         "model_name": "openai/gpt-oss-120b",
         "model_title": "GPT OSS 120B",
+        "model_category": "experimental"
+    },
+    {
+        "model_id": 5,
+        "model_name": "llama3-8b-8192",
+        "model_title": "LLama 3 8B",
         "model_category": "experimental"
     }
 ]

@@ -1,3 +1,0 @@
-meta-llama/llama3-70b-8192
-meta-llama/llama-4-scout-17b-16e-instruct
-Qwen/Qwen3-32B
