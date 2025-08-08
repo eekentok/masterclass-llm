@@ -45,7 +45,7 @@ def embed_text(text):
         return None
 
 def main():
-    df = pd.read_csv('./data/chunked_traf_data.csv')
+    df = pd.read_csv('./data/new_chunked_traf_data.csv')
     with open('./data/output/embeddings.jsonl', 'w') as f:
         for idx, row in df.iterrows():
 
